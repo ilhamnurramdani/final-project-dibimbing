@@ -14,7 +14,9 @@ services:
       - ../scripts:/scripts
     ports:
       - ${AIRFLOW_WEBSERVER_PORT}:8080
-  
+    networks:
+      - dataeng-network
+
   metabase:
     image: metabase/metabase:v0.47.3
     container_name: ${METABASE_CONTAINER_NAME}
@@ -22,7 +24,11 @@ services:
     ports:
       - "${METABASE_PORT}:3000"
     restart: always
-  
+    networks:
+      - dataeng-network
+    volumes:
+      - metabase-data:/metabase-data
+
   metabase-setup:
     image: bash:5.1.16
     container_name: metabase-setup
@@ -37,7 +43,43 @@ services:
       - MB_USER_FIRST_NAME=${METABASE_USER_FIRST_NAME}
       - MB_USER_LAST_NAME=${METABASE_USER_LAST_NAME}
     command: sh /tmp/metabase_entrypoint.sh ${METABASE_CONTAINER_NAME}:3000
+    networks:
+      - dataeng-network
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - dataeng-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - ${PGADMIN_PORT}:80
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - dataeng-network
+
+volumes:
+  postgres-data:
+  pgadmin-data:
+  metabase-data:
+
 networks:
-  default:
-    name: dataeng-network
+  dataeng-network:
     external: true
