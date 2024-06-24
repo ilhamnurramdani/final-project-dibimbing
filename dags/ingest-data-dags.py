@@ -11,14 +11,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
 
-
-# Define the get_conn function
+# Fungsi untuk membuat koneksi ke database
 def get_conn():
     connection_string = 'postgresql://postgres:postgres@postgres-db:5432/postgres'   
     engine = create_engine(connection_string)
     return engine.connect()
 
-# Define the ingest_data_csv function
+# Fungsi untuk memasukkan data dari file CSV
 def ingest_data_csv():
     conn = get_conn()
     files = glob.glob('data/customer_*.csv')
@@ -27,7 +26,7 @@ def ingest_data_csv():
         df.to_sql('customers', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_json_login_attempts function
+# Fungsi untuk memasukkan data dari file JSON (login attempts)
 def ingest_data_json_login_attempts():
     conn = get_conn()
     files = glob.glob('data/login_attempts_*.json')
@@ -36,7 +35,7 @@ def ingest_data_json_login_attempts():
         df.to_sql('login_attempts', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_json_coupons function
+# Fungsi untuk memasukkan data dari file JSON (coupons)
 def ingest_data_json_coupons():
     conn = get_conn()
     files = glob.glob('data/coupons.json')
@@ -45,7 +44,7 @@ def ingest_data_json_coupons():
         df.to_sql('coupons', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_xls_products function
+# Fungsi untuk memasukkan data dari file Excel (products)
 def ingest_data_xls_products():
     conn = get_conn()
     files = glob.glob('data/product.xls')
@@ -54,7 +53,7 @@ def ingest_data_xls_products():
         df.to_sql('products', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_xls_product_category function
+# Fungsi untuk memasukkan data dari file Excel (product category)
 def ingest_data_xls_product_category():
     conn = get_conn()
     files = glob.glob('data/product_category.xls')
@@ -63,7 +62,7 @@ def ingest_data_xls_product_category():
         df.to_sql('product_category', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_xls_supplier function
+# Fungsi untuk memasukkan data dari file Excel (supplier)
 def ingest_data_xls_supplier():
     conn = get_conn()
     files = glob.glob('data/supplier.xls')
@@ -72,7 +71,7 @@ def ingest_data_xls_supplier():
         df.to_sql('supplier', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_avro_orders function
+# Fungsi untuk memasukkan data dari file Parquet (orders)
 def ingest_data_parquet_order(): 
     conn = get_conn()
     files = glob.glob('data/order.parquet')
@@ -81,7 +80,7 @@ def ingest_data_parquet_order():
         df.to_sql('orders', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the ingest_data_avro_order_items function
+# Fungsi untuk memasukkan data dari file Avro (order items)
 def ingest_data_avro_order_items():
     conn = get_conn()
     files = [f for f in os.listdir('data/') if f.endswith('.avro')]
@@ -94,7 +93,7 @@ def ingest_data_avro_order_items():
             df.to_sql('order_items', conn, if_exists='append', index=False)
     conn.close()
 
-# Define the default arguments for the DAG
+# Argumen default untuk DAG
 default_args = {
     "owner" : "Kelompok 3",
     "depends_on_past": False,
@@ -103,7 +102,7 @@ default_args = {
     "retries": 1,
 }
 
-# Define the DAG
+# Definisi DAG
 dag = DAG(
     "ingest_data",
     default_args=default_args,
@@ -111,7 +110,8 @@ dag = DAG(
     start_date=datetime(2023, 6, 1),
     catchup=False,
 )
-# Define the PythonOperator task
+
+# Definisi tugas-tugas PythonOperator
 csv = PythonOperator(
     task_id="ingest_data_csv",
     python_callable=ingest_data_csv,
@@ -153,17 +153,19 @@ avro = PythonOperator(
     python_callable=ingest_data_avro_order_items,
     dag=dag,
 )
-# Define the DummyOperator tasks
-fisrt_task = DummyOperator(task_id='first_task')
+
+# Definisi tugas DummyOperator sebagai tugas awal dan akhir
+first_task = DummyOperator(task_id='first_task')
 last_task = DummyOperator(task_id='last_task')
 
-# Define the task dependencies
-fisrt_task >> csv >> last_task
-fisrt_task >> json_login_attempts >> last_task
-fisrt_task >> json_coupons >> last_task
-fisrt_task >> xls_products_category >> last_task
-fisrt_task >> xls_product >> last_task
-fisrt_task >> xls_supplier >> last_task
-fisrt_task >> parquet >> last_task
-fisrt_task >> avro >> last_task
+# Menentukan urutan eksekusi tugas dalam DAG
+first_task >> csv >> last_task
+first_task >> json_login_attempts >> last_task
+first_task >> json_coupons >> last_task
+first_task >> xls_products_category >> last_task
+first_task >> xls_product >> last_task
+first_task >> xls_supplier >> last_task
+first_task >> parquet >> last_task
+first_task >> avro >> last_task
+
 
