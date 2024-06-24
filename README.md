@@ -1,4 +1,4 @@
-# Proyek ETL dengan Apache Airflow dan Metabase
+# Proyek ETL dengan Apache Airflow, PostgreSQL dan Metabase
 
 Proyek ini adalah implementasi proses ETL (Extract, Transform, Load) menggunakan Apache Airflow untuk mentransfer dan memproses data dari database sumber ke data warehouse. Data yang telah diproses kemudian dianalisis menggunakan Metabase.
 
