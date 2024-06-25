@@ -198,14 +198,14 @@ def dim_coupons():
     rows_tuples = [tuple(row) for row in rows]
 
     create_table_query = """
-    CREATE TABLE IF NOT EXISTS dim_coupons(
+    CREATE TABLE IF NOT EXISTS dim_couponss(
         id INT PRIMARY KEY,
         discount_percent INT
     );
     """
     target_conn.execute(create_table_query)
     insert_query = """
-    INSERT INTO dim_coupons(id, discount_percent)
+    INSERT INTO dim_couponss(id, discount_percent)
     VALUES (%s, %s)
     ON CONFLICT DO NOTHING;
     """
